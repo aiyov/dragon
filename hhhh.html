@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style>
+			body{
+				margin: 0;
+			/*	background: black;*/
+			}
+			#see{
+				width: 600px;
+				height: 150px;
+				overflow: hidden;
+				margin-top: 100px;
+				margin-left: 100px;
+				background: white;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="see">
+			<canvas id="canvas" width="1233" height="220"></canvas>
+		</div>
+		<script type="text/javascript">
+			var Canvs = document.getElementById("canvas");
+			var Game = Canvs.getContext('2d');
+			var Img = new Image();
+			Img.src = 'pic/bg.png';
+
+			Img.onload = function(){
+				Game.drawImage(Img,0,0,1233,68,0,152,1233,68);
+				
+				var game_detail = {
+					timer:null,
+					speed:1.5,
+					score:0
+				};
+				function Horizon(){
+					this.width = 600;
+					this.height = 12;
+					this.canvas_xPos = [0,600];
+					this.canvas_yPos = 127;
+					this.sprite_xPos = [2,602];
+					this.sprite_yPos = 54;
+				}
+				Horizon.prototype = {
+					constructor:Horizon,
+					draw:function(){
+						var line_one = Game.getImageData(this.sprite_xPos[0],206,this.width,this.height);
+						Game.putImageData(line_one,this.canvas_xPos[0],this.canvas_yPos);
+						this.canvas_xPos[0]-= game_detail.speed;
+						
+						var line_two = Game.getImageData(this.sprite_xPos[1],206,this.width,this.height);
+						Game.putImageData(line_two,this.canvas_xPos[1],this.canvas_yPos);
+						this.canvas_xPos[1]-= game_detail.speed;
+					},
+					adjust:function(){
+						if(this.canvas_xPos[0] <= -600){
+							this.canvas_xPos[0] = 600;
+							Horizon_line.choose(0);
+						}
+						if (this.canvas_xPos[1] <= -600) {
+							this.canvas_xPos[1] = 600;
+							Horizon_line.choose(1);
+						}
+					},
+					choose:function(num){
+						Math.random()>0.5?this.sprite_xPos[num] = 2:this.sprite_xPos[num] = 602;
+					}
+				}
+//				width:40:跑,跳   50:低头；
+//				height:43:跑,跳 26:低头;
+//				sprite_xPos： 跑：938,982 跳：850 低头：1114，1173
+//				sprite_yPos： 跑，跳：4 低头：21；
+				function long(){
+					this.state = {
+						run:true,
+						jump:false,
+						low:false
+					},
+					this.timer = null;
+					this.width = [40,55],
+					this.height = [43,26],
+					this.canvas_xPos = [26,28],
+					this.canvas_yPos = [95,0,112],
+					this.sprite_xPos = [938,982,850,1114,1173],
+					this.sprite_yPos = [4,21]
+				}
+				long.prototype = {
+					constructor:long,
+					run:function(){
+						Math.round(game_detail.score) <= game_detail.score 							?Game.drawImage(
+							Img,this.sprite_xPos[0],
+							this.sprite_yPos[0],this.width[0],
+							this.height[0],this.canvas_xPos[0],
+							this.canvas_yPos[0],this.width[0],
+							this.height[0]
+							) : Game.drawImage(
+								Img,this.sprite_xPos[1],
+								this.sprite_yPos[0],this.width[0],
+								this.height[0],this.canvas_xPos[0],
+								this.canvas_yPos[0],this.width[0],
+								this.height[0]
+							)
+					},
+					jump:function(begin,target1,target2,a){
+						window.key_down = true;
+						var data = new Date();
+						var	time = Math.sqrt(2*(begin-target2)/a)*2;
+						var v = a*time*0.5;
+						var target = target2;
+						clearInterval(this.timer)
+						var that = this;
+						this.timer = setInterval(function(){
+							var t = (+new Date()) - data;
+							if(window.key_up == true){
+								if(t <= 100){
+									time = Math.sqrt(2*(begin-target1)/a)*2;
+									v = a*time*0.5;
+									target = target1;
+								}
+							}
+							if(t >= 0.5*time){
+								that.canvas_yPos[0] = target+a*0.5*(t-0.5*time)*(t-0.5*time);
+							}else if(t >= 0){
+								that.canvas_yPos[0] = begin- (v*t-a*0.5*t*t);
+							}
+							if(t >= time){
+								t = time;
+								that.canvas_yPos[0] = begin;
+								window.key_down = false;
+								clearInterval(that.timer);
+							}
+							that.canvas_yPos[0].toFixed(4);
+						})
+						
+					},
+					low:function(){
+						Math.round(game_detail.score) <= game_detail.score 							?Game.drawImage(
+								Img,this.sprite_xPos[3],
+								this.sprite_yPos[1],this.width[1],
+								this.height[1],this.canvas_xPos[1],
+								this.canvas_yPos[2],this.width[1],
+								this.height[1]
+							) : Game.drawImage(
+								Img,this.sprite_xPos[4],
+								this.sprite_yPos[1],this.width[1],
+								this.height[1],this.canvas_xPos[1],
+								this.canvas_yPos[2],this.width[1],
+								this.height[1]
+							)
+					}
+				}
+				
+				function barrier(){
+					this.other = {
+						arr:[],
+						posX:600,
+						barrierOnOff:true,
+						check_onOff:false,
+						distance:0
+					}
+					this.barrier = [{
+						spriteX:228,
+						spriteY:3,
+						W:15,
+						H:33,
+						canvasY:11,
+						crash: [new crash(0,106,15,33,0,106),new crash(0,114,3,11,0,114),new crash(5,106,5,8,5,106),new crash(12,110,3,4,12,110)]
+					},{
+						spriteX:246,
+						spriteY:3,
+						W:32,
+						H:33,
+						canvasY:11,
+						crash: [new crash(0,106,32,33,0,106),new crash(0,114,3,11,0,114),new crash(5,106,22,33,5,106),new crash(29,110,3,4,29,110)]
+					},{
+						spriteX:280,
+						spriteY:3,
+						W:49,
+						H:33,
+						canvasY:11,
+						crash: [new crash(0,106,49,33,0,106),new crash(0,114,3,11,0,114),new crash(5,106,39,33,5,106),new crash(46,110,3,4,46,110)]
+					},{
+						spriteX:333,
+						spriteY:3,
+						W:47,
+						H:48,
+						canvasY:11,
+						crash: [new crash(0,91,47,48,0,91),new crash(0,103,5,14,0,103),new crash(8,91,32,48,8,91),new crash(43,101,4,16,43,101)]
+					},{
+						spriteX:383,
+						spriteY:3,
+						W:23,
+						H:48,
+						canvasY:11,
+						crash: [new crash(0,91,23,48,0,91),new crash(0,96,5,15,0,96),new crash(8,91,7,48,8,91),new crash(18,101,5,16,18,101)]
+					},{
+						spriteX:408,
+						spriteY:3,
+						W:73,
+						H:48,
+						canvasY:11,
+						crash: [new crash(0,91,73,48,0,91),new crash(0,103,5,15,0,103),new crash(8,91,57,48,8,91),new crash(68,102,5,15,68,102)]
+					},{
+						spriteX:[136,182],
+						spriteY:[10,4],
+						W:42,
+						H:[30,26],
+						canvasY:[[108,102],[83,77],[58,52]],
+						crash:[[new crash(0,0,42,30,0,0),new crash(0,0,14,10,0,0),new crash(14,8,8,22,14,8),new crash(28,10,18,10,28,10)],[new crash(0,0,42,26,0,0),new crash(0,6,14,10,0,6),new crash(14,0,14,18,14,0),new crash(16,18,26,8,16,18)]]
+					}]
+				}
+				
+				barrier.prototype = {
+					constructor:barrier,
+					cactus:function(obj){
+						Game.drawImage(
+							Img,obj.spriteX,
+							obj.spriteY,obj.W,
+							obj.H,obj.canvasX,
+							150-obj.H-obj.canvasY,
+							obj.W,obj.H
+						);
+					},
+					bird:function(obj,num){
+						if (Math.round(game_detail.score) <= game_detail.score) {
+							Game.drawImage(
+								Img,obj.spriteX[0],
+								obj.spriteY[0],obj.W,
+								obj.H[0],obj.canvasX,
+								obj.canvasY[num][0],
+								obj.W,obj.H[0]
+							);
+							window.up = false;
+							window.down = true;
+						}else{
+							Game.drawImage(
+								Img,obj.spriteX[1],
+								obj.spriteY[1],obj.W,
+								obj.H[1],obj.canvasX,
+								obj.canvasY[num][1],
+								obj.W,obj.H[1]
+							);
+							window.up = true;
+							window.down = false;
+						}
+					},
+					onOff:function(){
+						if(this.other.barrierOnOff){
+							this.other.distance = 300 + Math.floor(Math.random()*10)*20;
+							if(this.other.posX + this.other.distance <= 1150){
+								this.other.posX = this.other.posX + this.other.distance;
+								Barrier.select(this.other.posX);
+							}else{
+								this.other.barrierOnOff = false;
+								this.other.check_onOff = true;
+							}
+						};
+						this.other.posX -= game_detail.speed;
+						if (this.other.check_onOff) {
+							Barrier.check();
+						}
+					},
+					check:function(){
+						if(this.other.posX + this.other.distance <= 1150){
+							this.other.posX = this.other.posX + this.other.distance;
+							Barrier.select(this.other.posX);
+							this.other.barrierOnOff = true;
+							this.other.check_onOff = false;
+						}
+					},
+					select:function(l){
+						var obj = this.barrier[Math.floor(Math.random()*this.barrier.length)];
+						var oj = {};
+						Barrier.deepcopy(obj,oj);
+						if ( typeof(oj.spriteX)=="object") {
+							oj['bird_num'] = Math.floor(Math.random()*3);
+						}
+						this.other.arr.push(oj);
+						this.other.arr[this.other.arr.length-1]['canvasX'] = l;
+					},
+					deepcopy:function(obj,obj1){
+						for (var attr in obj) {
+							if (typeof(obj[attr])=="object") {
+								var arr = [];
+								for (var i = 0; i < obj[attr].length; i++) {
+									if (Object.prototype.toString.call(obj[attr][i]) == '[object Array]') {
+										var a = [];
+										for (var j = 0; j < obj[attr][i].length; j++) {
+											if (typeof(obj[attr][i][j])=="object") {
+												var obj0 = {};
+												for (var b in obj[attr][i][j]) {
+													obj0[b] = obj[attr][i][j][b];
+												}
+												a.push(obj0);
+											}else{
+												a.push(obj[attr][i][j])
+											}
+											
+										}
+										arr.push(a);
+									}else if(Object.prototype.toString.call(obj[attr][i]) == '[object Object]'){
+										var obj2 = {};
+										for (var a in obj[attr][i]) {
+											obj2[a] = obj[attr][i][a];
+										}
+										arr.push(obj2);
+									}else if(Object.prototype.toString.call(obj[attr][i]) == '[object Number]'){
+										arr.push(obj[attr][i]);
+									}
+								}
+								obj1[attr] = arr;
+							} else{
+								obj1[attr] = obj[attr];
+							}
+						}
+					},
+					addBarrier:function(){
+						var that = this;
+						this.other.arr.forEach(function(ele,index){
+							ele.canvasX -= game_detail.speed;
+							if(typeof(ele.spriteX)== "object"){
+								Barrier.bird(ele,ele.bird_num);
+							}else{
+								Barrier.cactus(ele);
+							};
+							if (ele.canvasX <= -50) {
+								that.other.arr.splice(index,1);
+							};
+						});
+					}
+				}
+				
+				function crash(x,y,w,h,X,Y){
+					this.x = x;
+					this.y = y;
+					this.width = w;
+					this.height = h;
+					this.X = X;
+					this.Y = Y;
+				}
+				
+				var Imperial_crashBox = {
+					jump:[
+						new crash(26,0,40,43,26,0),
+						new crash(46,0,20,15,46,0),
+						new crash(26,15,28,12,26,15),
+						new crash(54,19,4,4,54,19),
+						new crash(36,35,14,8,36,35)
+					],
+					grove:[
+						new crash(28,112,55,26,28,112)
+					]
+				};
+				
+				function test(a,b){
+					return ! (a.y + a.height < b.y || a.x > b.x+b.width || a.y > b.y+b.height || a.x+a.width < b.x);
+				}
+				
+				
+				var Horizon_line = new Horizon();
+				var Long = new long();
+				window.key_down = false;
+				var Barrier = new barrier();
+				
+				game_detail.timer = setInterval(function(){
+					Game.clearRect(0,0,1233,150);
+					game_detail.score+= 0.02;
+					
+					Horizon_line.draw();
+					Horizon_line.adjust();
+					
+					Barrier.onOff();
+					Barrier.addBarrier();
+					crash();
+					
+					if (Long.state['run'] && window.key_down == false) {
+						Long.run();
+					} else if(Long.state['jump'] && window.key_down == false){
+						Long.jump(95,25,0,0.0025);
+					} else if(Long.state['low'] && window.key_down == false){
+						Long.low();
+					}
+					if (window.key_down == true) {
+						Game.drawImage(Img,Long.sprite_xPos[2],Long.sprite_yPos[0],Long.width[0],Long.height[0],Long.canvas_xPos[0],Long.canvas_yPos[0],Long.width[0],Long.height[0])
+					}
+					document.onkeydown = function(ev){
+						if(ev.keyCode == 38){
+							window.key_up = false;
+							Long.state['jump'] = true;
+							Long.state['run'] = false;
+							Long.state['low'] = false;
+						}else if (ev.keyCode == 40) {
+							Long.state['low'] = true;
+							Long.state['run'] = false;
+							Long.state['jump'] = false;
+						}
+					};
+					document.onkeyup = function(ev){
+						if(ev.keyCode == 40){
+							Long.state['jump'] = false;
+							Long.state['run'] = true;
+							Long.state['low'] = false;
+						}
+						if (ev.keyCode == 38) {
+							window.key_up = true;
+							Long.state['jump'] = false;
+							Long.state['run'] = true;
+							Long.state['low'] = false;
+						}
+					};
+					
+					//碰撞检测
+					if (Long.state['low'] && window.key_down == false) {
+						if (typeof(Barrier.other.arr[0].spriteX)=="object") {
+							if (window.down) {
+								for (var i = 0; i < Barrier.other.arr[0].crash[0].length; i++) {
+									Barrier.other.arr[0].crash[0][i].x = Barrier.other.arr[0].canvasX + Barrier.other.arr[0].crash[0][i].X;
+									Barrier.other.arr[0].crash[0][i].y = Barrier.other.arr[0].canvasY + Barrier.other.arr[0].crash[0][i].Y;
+								}
+								if (test(Imperial_crashBox.grove[0],Barrier.other.arr[0].crash[0][0])) {
+									for (var i = 0; i < Barrier.other.arr[0].crash[0].length; i++) {
+										test(Imperial_crashBox.grove[0],Barrier.other.arr[0].crash[0][i])
+									}
+								}
+								
+							}else{
+								for (var i = 0; i < Barrier.other.arr[0].crash[1].length; i++) {
+									Barrier.other.arr[0].crash[1][i].x = Barrier.other.arr[0].canvasX + Barrier.other.arr[0].crash[1][i].X;
+									Barrier.other.arr[0].crash[1][i].y = Barrier.other.arr[0].canvasY + Barrier.other.arr[0].crash[1][i].Y;
+								}
+								if (test(Imperial_crashBox.grove[0],Barrier.other.arr[0].crash[1][0])) {
+									for (var i = 0; i < Barrier.other.arr[0].crash[0].length; i++) {
+										test(Imperial_crashBox.grove[0],Barrier.other.arr[0].crash[1][i])
+									}
+								}
+							}
+						}else{
+							for (var i = 0; i < Barrier.other.arr[0].crash.length; i++) {
+								Barrier.other.arr[0].crash[i].x = Barrier.other.arr[0].canvasX + Barrier.other.arr[0].crash[i].X;
+							}
+							if (test(Imperial_crashBox.grove[0],Barrier.other.arr[0].crash[0])) {
+								clearInterval(game_detail.timer);
+							}
+						}
+					}else{
+						for (var i = 0; i < Imperial_crashBox.jump.length; i++) {
+							Imperial_crashBox.jump[i].y = Long.canvas_yPos[0] + Imperial_crashBox.jump[i].Y;
+						}
+						if (typeof(Barrier.other.arr[0].spriteX)=="object") {
+							if (window.down) {
+								for (var i = 0; i < Barrier.other.arr[0].crash[0].length; i++) {
+									Barrier.other.arr[0].crash[0][i].x = Barrier.other.arr[0].canvasX + Barrier.other.arr[0].crash[0][i].X;
+									Barrier.other.arr[0].crash[0][i].y = Barrier.other.arr[0].canvasY[Barrier.other.arr[0].bird_num][0] + Barrier.other.arr[0].crash[0][i].Y;
+								}
+								
+								if (test(Imperial_crashBox.jump[0],Barrier.other.arr[0].crash[0][0])) {
+									for (var i = 1; i < Imperial_crashBox.jump.length; i++) {
+										for (var j = 1; j < Barrier.other.arr[0].crash[0].length; j++) {
+											if (test(Imperial_crashBox.jump[i],Barrier.other.arr[0].crash[0][j])) {
+												clearInterval(game_detail.timer);
+											}
+										}
+									}
+								}
+								
+							}else{
+								for (var i = 0; i < Barrier.other.arr[0].crash[1].length; i++) {
+									Barrier.other.arr[0].crash[1][i].x = Barrier.other.arr[0].canvasX + Barrier.other.arr[0].crash[1][i].X;
+									Barrier.other.arr[0].crash[1][i].y = Barrier.other.arr[0].canvasY[Barrier.other.arr[0].bird_num][1] + Barrier.other.arr[0].crash[1][i].Y;
+								}
+								
+								if (test(Imperial_crashBox.jump[0],Barrier.other.arr[0].crash[1][0])) {
+									for (var i = 1; i < Imperial_crashBox.jump.length; i++) {
+										for (var j = 1; j < Barrier.other.arr[0].crash[1].length; j++) {
+											if (test(Imperial_crashBox.jump[i],Barrier.other.arr[0].crash[1][j])) {
+												clearInterval(game_detail.timer);
+											}
+										}
+									}
+								}
+							}
+						}else{
+							for (var i = 0; i < Barrier.other.arr[0].crash.length; i++) {
+								Barrier.other.arr[0].crash[i].x = Barrier.other.arr[0].canvasX + Barrier.other.arr[0].crash[i].X;
+							}
+							if (test(Imperial_crashBox.jump[0],Barrier.other.arr[0].crash[0])) {
+								for (var i = 1; i < Imperial_crashBox.jump.length; i++) {
+									for (var j = 1; j < Barrier.other.arr[0].crash.length; j++) {
+										if (test(Imperial_crashBox.jump[i],Barrier.other.arr[0].crash[j])) {
+											clearInterval(game_detail.timer);
+										}
+									}
+								}
+							}
+						}
+					}
+				})
+				
+			}
+		</script>
+	</body>
+</html>
